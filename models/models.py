@@ -55,19 +55,27 @@ class Product(Document):
     is_discount = BooleanField(default=False)
     properties = EmbeddedDocumentField(Properties)
     category = ReferenceField(Category)
+    photo = FileField()
 
     @property
     def get_price(self):
         if self.is_discount:
             return str(self.new_price / 100)
         return str(self.price / 100)
+    
+    
 
+    
     @classmethod
     def get_discount_products(cls):
         return cls.objects(is_discount=True, **kwargs)
 
 
-
+def get_suum_of_prices(list_of_price):
+    c = 0
+    for i in list_of_price:
+        c += i
+    return c
 
 
 

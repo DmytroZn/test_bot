@@ -13,6 +13,7 @@ from keyboards import ReplyKB
 
 bot = telebot.TeleBot(config.TOKEN)
 
+
 @bot.message_handler(commands=['start'])
 def start(message):
   
@@ -30,37 +31,105 @@ def start(message):
     greeting_str = f'Hello {dict_of_user.first_name} {dict_of_user.last_name}'
     keyboard = ReplyKB().generate_kb(*keyboards.beginning_kb.values())
     bot.send_message(message.chat.id, greeting_str, reply_markup=keyboard)
+
+
+@bot.message_handler(func=lambda message: message.text == keyboards.beginning_kb['news'])
+def say_news(message):
+    # prod = models.Product.objects(category='5dcfe1badcd794512cc89b03')
+
+    inlin = InlineKeyboardMarkup()
+    in1 = InlineKeyboardButton(text='test1', callback_data='testing')
+    inlin.add(in1)
+    bot.send_photo(message.chat.id, 'https://images8.alphacoders.com/953/thumb-1920-953503.jpg', caption='po', reply_markup=inlin)
+
+    # bot.send_message(message.chat.id, 'We created this bot 23.11.2019', reply_markup=inlin)
+
+
+@bot.message_handler(func=lambda message: message.text == keyboards.beginning_kb['sales'])
+def say_sales(message):
+
+    bot.send_message(message.chat.id, 'Now we don`t have product for sale')
+
+
+@bot.message_handler(func=lambda message: message.text == keyboards.beginning_kb['about'])
+def say_about(message):
+    text = '''
+    This is bot-shop. 
+    You can see products, choice products from categories and add products to your cart also buy.
     
+    If you want have similar bot like this you can write to email: dmytro.zn@gmail.com'''
+    bot.send_message(message.chat.id, text)
+
+
+@bot.message_handler(func=lambda message: message.text == keyboards.beginning_kb['cart'])
+def say_cart(message):
+    cat = models.Category.objects().first()
+
+    keyboard = InlineKeyboardMarkup()
+    button = InlineKeyboardButton(text='My cart', callback_data=f'look my cart_{cat.id}')
+    keyboard.add(button)
+    bot.send_message(message.chat.id, text='Open cart', reply_markup=keyboard)
+
+
+@bot.callback_query_handler(func=lambda call: call.data == 'testing')
+def sow(call):
+#     prod = models.Product.objects(category='5dcfe1badcd794512cc89b03').all()
+    
+    inline_one = InlineKeyboardMarkup()
+    b = InlineKeyboardButton(text='sdf', callback_data='sss')
+    inline_one.add(b)
+#     in1 = [InlineKeyboardButton(text=f'{i.title}\t', callback_data=f'{i.id}_prodgood') for i in prod]
+#     l = InlineKeyboardButton(text='cart', callback_data='cart')
+#     inline_one.add(*in1)
+#     inline_one.add(l)
+    # bot.send_photo(call.message.chat.id, 'https://images8.alphacoders.com/953/thumb-1920-953503.jpg', caption='po')
+    # bot.send_location(call.message.chat.id, latitude=50.458136, longitude=30.512276)
+    # bot.SuccessfulPayment(currency='USD', total_amount=145, invoice_payload='yy', 
+    #                             telegram_payment_charge_id='sdf', provider_payment_charge_id='gg')
+    # bot.edit_message_text(text='test\n test2', chat_id=call.message.chat.id,
+    #                             message_id=call.message.message_id)
+    # bot.edit_message_media('https://images8.alphacoders.com/953/thumb-1920-953503.jpg', chat_id=call.message.chat.id,
+    #           message_id=call.message.message_id)
+    # editMessageMedia
+    # bot.edit_message_caption(caption='category.title', chat_id=call.message.chat.id,
+    #                         message_id=call.message.message_id)
+
+    bot.delete_message(chat_id=call.message.chat.id,
+                            message_id=call.message.message_id)
+    g = models.Product.objects(title='Cartoon').first()
+    photo = g.photo.read()
+    content_type = g.photo.content_type
+
+
+    bot.send_photo(call.message.chat.id, photo, caption='po')
+    bot.send_message(call.message.chat.id, content_type, reply_markup=inline_one)
+  
+# @bot.callback_query_handler(func=lambda call: call.data.split('_')[1] == 'prodgood')
+# def soe2(call):
+#     a = call.data.split('_')[0]
+#     bot.edit_message_text(text='new', chat_id=call.message.chat.id,
+#                                 message_id=call.message.message_id)
+   
 
 @bot.message_handler(func=lambda message: message.text == keyboards.beginning_kb['products'])
 def show_categories(message):
-    
-    
+        
     kb = keyboards.InlineKB(key='root', lookup_field='id', named_arg='category')
 
     bot.send_message(message.chat.id, 'Chooce category', reply_markup=kb.generate_kb())
-
-
-
-
-
-
-
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'category')
 def show_products_or_sub_category(call):
     
     """
-
     :param call
     :return listed
     """
-    
 
     obj_id = call.data.split('_')[1]
     category = models.Category.objects(id=obj_id).get()
-
+ 
     if category.is_parent:
 
         kb = keyboards.InlineKB(
@@ -72,44 +141,72 @@ def show_products_or_sub_category(call):
         kb.add(InlineKeyboardButton(text=f'<< {category.title}',
                             callback_data=f'back_{category.id}'))
      
-        bot.edit_message_text(text=category.title, chat_id=call.message.chat.id,
-                            message_id=call.message.message_id,
-                            reply_markup=kb)
-        
+
+        bot.delete_message(chat_id=call.message.chat.id,
+                            message_id=call.message.message_id)
+        bot.send_message(text=category.title, chat_id=call.message.chat.id,reply_markup=kb)
+        # bot.edit_message_text(text=category.title, chat_id=call.message.chat.id,
+        #                     message_id=call.message.message_id,
+        #                     reply_markup=kb)
+
     else:
         print('NON PARANT')
-        
-        
         if call.data.split('_')[1]:
-        
-   
-            look_cart = InlineKeyboardMarkup()
-            ##################
-            look = InlineKeyboardButton(text='Look my cart', callback_data=f'Look my cart_{category.id}')
-            back = InlineKeyboardButton(text='<< back', callback_data=f'back_{category.id}')
-            look_cart.add(back,look)
-           
-            print('200')
-            
-            u = models.Product.objects(category=call.data.split('_')[1])
-            
-            for i in u:
-                keyboard = InlineKeyboardMarkup()
-                b = InlineKeyboardButton(text='add to cart', callback_data=f'add to cart_{i.id}')
-                keyboard.add(b)
-             
-                bot.send_message(call.message.chat.id, i.title)
-                bot.send_photo(call.message.chat.id, 'https://images8.alphacoders.com/953/thumb-1920-953503.jpg')
-                bot.send_message(call.message.chat.id, i.description, reply_markup=keyboard)
+            products = models.Product.objects(category=call.data.split('_')[1])
+            keyboard = InlineKeyboardMarkup(row_width=1)
+            prods = [InlineKeyboardButton(text=i.title, callback_data=f'show product_{i.id}_{category.id}') for i in products]
+            back = InlineKeyboardButton(text=f'<< back', callback_data=f'back_{category.id}')
+            if len(prods) == 0:
+                text = 'Empty'
+            else:
+                text = category.title
+            keyboard.add(*prods)
+            keyboard.add(back)
+
+            bot.delete_message(chat_id=call.message.chat.id,
+                            message_id=call.message.message_id)
+
+            bot.send_message(text=text, chat_id=call.message.chat.id, reply_markup=keyboard)
+            # bot.edit_message_text(text=text, chat_id=call.message.chat.id,
+            #                 message_id=call.message.message_id,
+            #                 reply_markup=keyboard)
 
 
+@bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'show product')
+def show_prod(call):
+
+    product = models.Product.objects(id=call.data.split('_')[1]).first()
+
+    keyboard = InlineKeyboardMarkup()
+    add_product = InlineKeyboardButton(text='Add to cart', callback_data=f'add to cart_{product.id}')
+    back = InlineKeyboardButton(text='<< back', callback_data=f'category_{call.data.split("_")[2]}') # call.data.split("_")[2]}')
+    look_cart = InlineKeyboardButton(text='Look my cart', callback_data=f'look my cart_{call.data.split("_")[2]}') 
+    keyboard.add(add_product)
+    keyboard.add(back, look_cart)
+################
+    # bot.delete_message(chat_id=call.message.chat.id,
+    #                         message_id=call.message.message_id)
+    # g = models.Product.objects(title='Cartoon').first()
+    # photo = g.photo.read()
+    # content_type = g.photo.content_type
 
 
+    # bot.send_photo(call.message.chat.id, photo, caption='po')
+    # bot.send_message(call.message.chat.id, content_type, reply_markup=inline_one)
 
-            bot.send_message(call.message.chat.id, ' _' , reply_markup=look_cart)
-            print(f'call.message.chat.id: {call.message.chat.id}')
-            print(f'call.message.message_id: {call.message.message_id}')
-   
+#####################
+    bot.delete_message(chat_id=call.message.chat.id,
+                            message_id=call.message.message_id)
+    text = f"""<b>{product.title}</b>\n {product.description} \n {product.get_price} USD \n """
+    photo = product.photo.read()
+    bot.send_photo(call.message.chat.id, photo, caption=text, parse_mode='HTML', reply_markup=keyboard)
+
+
+    
+    # bot.edit_message_text(text=f"""{product.title}\n {product.description} \n {product.get_price} USD \n """, chat_id=call.message.chat.id,
+    #                         message_id=call.message.message_id, reply_markup=keyboard)
+
+    
 @bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'add to cart')
 def add_to_cart(call):
     
@@ -121,81 +218,63 @@ def add_to_cart(call):
     b = models.Product.objects(id=call.data[12:]).first()
     print(b.title)
     bot.answer_callback_query(callback_query_id=call.id, show_alert=False, text=f'You added {b.title}') 
-                    
-
-  
-@bot.callback_query_handler(func=lambda call: call.data == '_back_')
-def back_to(call):
-    print(f'call.message.chat.id: {call.message.chat.id}')
-    print(f'call.message.message_id: {call.message.message_id}')
-    print('_back_')
-    # obj_id = call.data.split('_')[1]
-    # category = models.Category.objects(id=obj_id).get()
-    bot.register_next_step_handler(6790, show_products_or_sub_category)
-    print('_back_to')
-    # show_products_or_sub_category
-
-  
 
 
-@bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'Look my cart')
+@bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'look my cart')
 def look_my_cart(call):
+    try:
+        cart_del = models.Cart.objects(id=call.data.split('_')[2]).delete()
+        bot.answer_callback_query(callback_query_id=call.id, show_alert=False, text=f'You delete') 
+    except IndexError:
+        pass
+ 
+    user = models.User.objects(id_user=str(call.from_user.id)).first()
+    cart = models.Cart.objects(user=user.id).all()
     
+    list_of_price = [i.product.price for i in cart]
+    amount = (models.get_suum_of_prices(list_of_price)) / 100                                         
 
-    mod = models.User.objects(id_user=str(call.from_user.id)).first()
-    look = models.Cart.objects(user=mod.id).first()
-    look2 = models.Cart.objects(user=mod.id).all()
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    back = InlineKeyboardButton(text='<< back', callback_data=f'category_{call.data.split("_")[1]}_{None}')
+    buy = InlineKeyboardButton(text=f'buy {amount} USD', callback_data=f'buy_{call.data.split("_")[1]}')
+    prod_from_cart = [InlineKeyboardButton(text=f'{i.product.title} delete', callback_data=f'look my cart_{call.data.split("_")[1]}_{i.id}') for i in cart]
+    if len(prod_from_cart) == 0:
+        text='You don`t have any products \n but you can buy something'
+        keyboard.add(back)
+    else:
+        text = 'My cart'
+        keyboard.add(*prod_from_cart)
+        keyboard.add(back, buy)
 
+    bot.delete_message(chat_id=call.message.chat.id,
+                            message_id=call.message.message_id)
 
-    obj_id = call.data.split('_')[1]
-    category = models.Category.objects(id=obj_id).get()
+    bot.send_message(text=text, chat_id=call.message.chat.id,
+                            reply_markup=keyboard)
 
-    buy = InlineKeyboardMarkup()
-    buy_one = InlineKeyboardMarkup()
-    buy1 = InlineKeyboardButton('Buy', callback_data='buy')
-    back = InlineKeyboardButton('<< back', callback_data=f'back_{category.id}')
-    buy.add(back, buy1)
-    buy_one.add(back)
-
-    if look2:
-        for i in look2:
-            print('fod')
-            print(i.id)
-            dell = InlineKeyboardMarkup()
-            dell1 = InlineKeyboardButton('Delete', callback_data=f'dell_{i.id}')
-            dell.add(dell1)
-            bot.send_message(call.message.chat.id, i.product.title, reply_markup=dell)
-           
-            print(i.product.title)
-
-            
-        bot.send_message(call.message.chat.id, 'You can buy', reply_markup=buy)
-    else:   
-
-        bot.send_message(call.message.chat.id, 'You don`t have any products', reply_markup=buy_one)
-
-
-
-@bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'dell')
-def delete_product(call):
-    cart = models.Cart.objects(id=call.data.split('_')[1]).delete()
+   
+# @bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'dell')
+# def delete_product(call):
+#     print('dell')
+#     print(call.data)
+#     cart = models.Cart.objects(id=call.data.split('_')[1]).delete()
   
-    bot.answer_callback_query(callback_query_id=call.id, show_alert=False, text=f'You delete') 
+#     bot.answer_callback_query(callback_query_id=call.id, show_alert=False, text=f'You delete') 
      
-    bot.edit_message_text(text='You deleted product from cart.', chat_id=call.message.chat.id,
-                        message_id=call.message.message_id)
-        
-    
 
-@bot.callback_query_handler(func=lambda call: call.data == 'buy')
+@bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'buy')
 def buy_product(call):
-    mod = models.User.objects(id_user=str(call.from_user.id)).first()
-    look = models.Cart.objects(user=mod.id).all()
+    keyboard = InlineKeyboardMarkup()
+    back = InlineKeyboardButton(text='<< back', callback_data=f'look my cart_{call.data.split("_")[1]}')
+    keyboard.add(back)
+    bot.edit_message_text(text='Serice for don`t work now, try do it late.', chat_id=call.message.chat.id,
+                            message_id=call.message.message_id, reply_markup=keyboard)
+    # mod = models.User.objects(id_user=str(call.from_user.id)).first()
+    # look = models.Cart.objects(user=mod.id).all()
 
-    if look:
-        for i in look:
-            look.delete()
-       
+    # if look:
+    #     for i in look:
+    #         look.delete()
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'back')
@@ -206,9 +285,7 @@ def go_back(call):
     if category.is_root:
         kb = keyboards.InlineKB(key='root', lookup_field='id', named_arg='category')
         kb.generate_kb()
-
     else:
-
         kb = keyboards.InlineKB(
             iterable=category.parent.subcategory,
             lookup_field='id',
@@ -220,27 +297,16 @@ def go_back(call):
 
     text = 'Categories' if not category.parent else category.parent.title
 
+    bot.delete_message(chat_id=call.message.chat.id,
+                            message_id=call.message.message_id)
 
-    print(text)
-
-    bot.edit_message_text(text=text, chat_id=call.message.chat.id,
-                        message_id=call.message.message_id,
-                        reply_markup=kb)
-
-
-
-
-
-
-
-
-
+    bot.send_message(text=text, chat_id=call.message.chat.id,
+                            reply_markup=kb)
+    # bot.edit_message_text(text=text, chat_id=call.message.chat.id,
+    #                     message_id=call.message.message_id,
+    #                     reply_markup=kb)
 
 
 if __name__ == '__main__':
     bot.polling(none_stop=True)
     # app.run()
-
-
-
-

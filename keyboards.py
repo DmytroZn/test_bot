@@ -4,7 +4,8 @@ beginning_kb = {
     'news' : 'Last news',
     'products' : 'Products',
     'sales' : 'Product for sales',
-    'about' : 'Information about shop'
+    'about' : 'Information about shop',
+    'cart' : 'My cart'
 }
 
 
