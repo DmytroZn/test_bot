@@ -60,9 +60,20 @@ class Product(Document):
     @property
     def get_price(self):
         if self.is_discount:
+            return self.new_price / 100
+        return self.price / 100
+
+    @property
+    def get_price_str(self):
+        if self.is_discount:
             return str(self.new_price / 100)
-        return str(self.price / 100)
-    
+        return str(self.price / 100)   
+
+    def get_suum_of_prices(self, list_of_price):
+        self.c = 0
+        for i in self.list_of_price:
+            self.c += i
+        return self.c / 100
     
 
     
@@ -71,11 +82,7 @@ class Product(Document):
         return cls.objects(is_discount=True, **kwargs)
 
 
-def get_suum_of_prices(list_of_price):
-    c = 0
-    for i in list_of_price:
-        c += i
-    return c
+
 
 
 
@@ -92,12 +99,18 @@ class User(Document):
 
 class Cart(Document):
     user = ReferenceField(User)
-    product = ReferenceField(Product)
+    # product = ReferenceField(Product)
+    products = ListField()
+    active = BooleanField(default=True)
+    date_time = StringField()
 
 # Category.objects.update(is_root=True)
 # list_of_catteg = [i.title for i in Category.objects()]
 
-
+class Testing(Document):
+    name = StringField()
+    last_name = StringField()
+    list_of = ListField()
 
 
 
