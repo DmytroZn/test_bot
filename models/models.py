@@ -1,5 +1,7 @@
 from mongoengine import *
 
+
+
 connect('web_shop_bot')
 
 
@@ -100,17 +102,22 @@ class User(Document):
 class Cart(Document):
     user = ReferenceField(User)
     # product = ReferenceField(Product)
-    products = ListField()
+    # products = ListField()
+    products = ListField(ReferenceField(Product))
+
     active = BooleanField(default=True)
-    date_time = StringField()
+    date_time = DateTimeField()
+    # date_time = DateTimeField(required=False, default=datetime.datetime.utcnow)
+
 
 # Category.objects.update(is_root=True)
 # list_of_catteg = [i.title for i in Category.objects()]
 
+
 class Testing(Document):
     name = StringField()
     last_name = StringField()
-    list_of = ListField()
+    list_of = ListField(ReferenceField(Product))
 
 
 

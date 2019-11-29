@@ -8,6 +8,7 @@ from telebot.types import (
 
 import config
 import keyboards
+import datetime
 from models import models
 from keyboards import ReplyKB
 
@@ -89,11 +90,24 @@ def say_cart(message):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'testing')
 def sow(call):
+
+
+    # cart = models.Testing(**{'name': 'Dima', 'last_name':'Znak'}).save()
+    bot.send_message(call.message.chat.id, 'content_type')
+    cart1 = models.Testing.objects(name='Dima').first()
+    prod = models.Product.objects(id='5dce8ea5ca40d8eacf00224d').first()
+    # cart1.update(push__list_of=prod)
+    print('good')
+    cart2 = models.Testing.objects(name='Dima').first()
+    print([i.title for i in cart2.list_of])
+    # print(cart2.list_of.title)
+
+    # prod = models.Product.objects()
 #     prod = models.Product.objects(category='5dcfe1badcd794512cc89b03').all()
     
-    inline_one = InlineKeyboardMarkup()
-    b = InlineKeyboardButton(text='sdf', callback_data='sss')
-    inline_one.add(b)
+    # inline_one = InlineKeyboardMarkup()
+    # b = InlineKeyboardButton(text='sdf', callback_data='sss')
+    # inline_one.add(b)
 #     in1 = [InlineKeyboardButton(text=f'{i.title}\t', callback_data=f'{i.id}_prodgood') for i in prod]
 #     l = InlineKeyboardButton(text='cart', callback_data='cart')
 #     inline_one.add(*in1)
@@ -110,15 +124,15 @@ def sow(call):
     # bot.edit_message_caption(caption='category.title', chat_id=call.message.chat.id,
     #                         message_id=call.message.message_id)
 
-    bot.delete_message(chat_id=call.message.chat.id,
-                            message_id=call.message.message_id)
-    g = models.Product.objects(title='Cartoon').first()
-    photo = g.photo.read()
-    content_type = g.photo.content_type
+    # bot.delete_message(chat_id=call.message.chat.id,
+    #                         message_id=call.message.message_id)
+    # g = models.Product.objects(title='Cartoon').first()
+    # photo = g.photo.read()
+    # content_type = g.photo.content_type
 
 
-    bot.send_photo(call.message.chat.id, photo, caption='po')
-    bot.send_message(call.message.chat.id, content_type, reply_markup=inline_one)
+    # bot.send_photo(call.message.chat.id, photo, caption='po')
+    # bot.send_message(call.message.chat.id, content_type, reply_markup=inline_one)
   
 # @bot.callback_query_handler(func=lambda call: call.data.split('_')[1] == 'prodgood')
 # def soe2(call):
@@ -199,18 +213,7 @@ def show_prod(call):
     look_cart = InlineKeyboardButton(text='Look my cart', callback_data=f'look my cart_{call.data.split("_")[2]}') 
     keyboard.add(add_product)
     keyboard.add(back, look_cart)
-################
-    # bot.delete_message(chat_id=call.message.chat.id,
-    #                         message_id=call.message.message_id)
-    # g = models.Product.objects(title='Cartoon').first()
-    # photo = g.photo.read()
-    # content_type = g.photo.content_type
 
-
-    # bot.send_photo(call.message.chat.id, photo, caption='po')
-    # bot.send_message(call.message.chat.id, content_type, reply_markup=inline_one)
-
-#####################
     bot.delete_message(chat_id=call.message.chat.id,
                             message_id=call.message.message_id)
     text = f"""<b>{product.title}</b>\n {product.description} \n {product.get_price} USD \n """
@@ -230,94 +233,58 @@ def add_to_cart(call):
     user_id = models.User.objects(id_user=str(dict_of_user.id)).first()
     print(user_id)
 
-
-
-    # user_id = models.User.objects(id_user=str(call.from_user.id)).first()
-    # cart_user = models.Cart(**{'user':models.User.objects(id_user=str(call.from_user.id)).first(), 'product': call.data[12:]}).save()
-    # if not models.Cart.objects(user=user_id, active=True):
-    # # search = models.Cart.objects(user=user_id, active=True)
-    #     cart_user = models.Cart(**{'user':models.User.objects(id_user=str(call.from_user.id)).first()}).save()
-    # else:
-    #     cart_user = models.Cart.objects(user=user_id, active=True).first()
-    #     cart_user.update(push__products=call.data[12:])
-
-
-
-    real_user_id = models.User.objects(id_user=str(dict_of_user.id)).first()
-    print(real_user_id)
-
     if not models.Cart.objects(user=user_id, active=True):
-        cart_user = models.Cart(**{'user':real_user_id}).save()
+        cart_user = models.Cart(**{'user':user_id}).save()
     else:
-        cart_user = models.Cart.objects(user=user_id, active=True).first()
-        cart_user.update(push__products=call.data[12:])
+        pass
+    cart_user = models.Cart.objects(user=user_id, active=True).first()
+    ref_prod = models.Product.objects(id=call.data[12:]).first()
+    cart_user.update(push__products=ref_prod)
 
 
     
-    # mod = models.User.objects(id_user=str(call.from_user.id)).first()
-    # print(mod.id)
+   
 
-    # m = models.Cart(**{'user':models.User.objects(id_user=str(call.from_user.id)).first(), 'product': call.data[12:]}).save()
-
-    title_product = models.Product.objects(id=call.data[12:]).first()
-    print(title_product.title)
-    bot.answer_callback_query(callback_query_id=call.id, show_alert=False, text=f'You added {title_product.title}') 
+    print(ref_prod.title)
+    bot.answer_callback_query(callback_query_id=call.id, show_alert=False, text=f'You added {ref_prod.title}') 
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'look my cart')
 def look_my_cart(call):
-# num = doc.list_of.index('15254')
-# doc.update(pop__list_of=num)
 
-    # try:
     user_id = models.User.objects(id_user=str(call.from_user.id)).first()
-    print(user_id.id)
-    cart_user = models.Cart.objects(user=user_id.id, active=True).first()
-    print(cart_user)
+    print(f'user_id {user_id.id}')
     
     
-    # user_cart = models.Cart.objects(id=call.data.split('_')[2])
+    if not models.Cart.objects(user=user_id, active=True):
+        cart_user = models.Cart(**{'user':user_id.id}).save()
+    else:
+        cart_user = models.Cart.objects(user=user_id.id, active=True).first()
+        print(f'cart_user {cart_user}')
+
     print(20000000)
     try:
-        # user_id = models.User.objects(id_user=str(call.from_user.id)).first()
-        # print(user_id.id)
-        # cart_user = models.Cart.objects(user=user_id.id, active=True).first()
-        # print(cart_user)
-
-        num = cart_user.products.index(call.data.split('_')[2])
+        num1 = models.Product.objects(id=call.data.split('_')[2]).first()
+        num = cart_user.products.index(num1)
         print(num)
         cart_user.products[0], cart_user.products[num] = cart_user.products[num], cart_user.products[0]
         cart_user.save()
 
         delete_product = cart_user.update(pop__products=-1)
         cart_user = models.Cart.objects(user=user_id.id, active=True).first()
-        # print(delete_product)
         print('deleted')
-    except (ValueError, IndexError):
+    except (ValueError, IndexError): #, AttributeError):
         pass
     
-    # except :
-    #     pass
-
-
-
-    # try:
-    #     cart_del = models.Cart.objects(id=call.data.split('_')[2]).delete()
-    #     bot.answer_callback_query(callback_query_id=call.id, show_alert=False, text=f'You delete') 
-    # except IndexError:
-    #     pass
- 
-    # user = models.User.objects(id_user=str(call.from_user.id)).first()
-    # cart = models.Cart.objects(user=user.id).all()
-    '''
-    list_of_price = [i.product.get_price for i in cart_user]
-    amount = (models.get_suum_of_prices(list_of_price)) / 100                                         
-    '''
+    print('get')
+    # list_of_price = [i.products.get_price for i in cart_user]
+    # amount = (models.get_suum_of_prices(list_of_price)) / 100                                         
+    print('end')
     keyboard = InlineKeyboardMarkup(row_width=2)
     back = InlineKeyboardButton(text='<< back', callback_data=f'category_{call.data.split("_")[1]}_{None}')
     buy = InlineKeyboardButton(text=f'buy {"amount"} USD', callback_data=f'buy_{call.data.split("_")[1]}')
     print([i for i in cart_user.products])
-    prod_from_cart = [InlineKeyboardButton(text=f'{models.Product.objects(id=i).first().title} delete', callback_data=f'look my cart_{call.data.split("_")[1]}_{i}') for i in cart_user.products]
+    prod_from_cart = [InlineKeyboardButton(text=f'{i.title} delete', callback_data=f'look my cart_{call.data.split("_")[1]}_{i.id}') for i in cart_user.products]
     if len(prod_from_cart) == 0:
         text='You don`t have any products \n but you can buy something'
         keyboard.add(back)
@@ -347,16 +314,17 @@ def buy_product(call):
     keyboard = InlineKeyboardMarkup()
     back = InlineKeyboardButton(text='<< back', callback_data=f'look my cart_{call.data.split("_")[1]}')
     keyboard.add(back)
-    bot.edit_message_text(text='Serice for don`t work now, try do it late.', chat_id=call.message.chat.id,
+
+    bot.edit_message_text(text='You bought!.', chat_id=call.message.chat.id,
                             message_id=call.message.message_id, reply_markup=keyboard)
-    # mod = models.User.objects(id_user=str(call.from_user.id)).first()
-    # look = models.Cart.objects(user=mod.id).all()
 
-    # if look:
-    #     for i in look:
-    #         look.delete()
+    user_id = models.User.objects(id_user=str(call.from_user.id)).first()
+    cart_user = models.Cart.objects(user=user_id.id, active=True).first()
+    cart_user.update(active=False, date_time=datetime.datetime.now())
+    print('bbbb')
+    print(datetime.datetime.now())
 
-
+    
 @bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'back')
 def go_back(call):
     obj_id = call.data.split('_')[1]
